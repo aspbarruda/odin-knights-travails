@@ -1,11 +1,12 @@
 class Square
-  attr_accessor :arr, :position, :visited, :level
+  attr_accessor :arr, :position, :visited, :level, :parent_move
 
   def initialize(position)
     @arr = []
     @position = position
     @visited = false
     @level = nil
+    @parent_move = nil
   end
 end
 
@@ -55,8 +56,11 @@ class Board
       tmp.visited = true
 
       tmp.arr.each do |v|
-        queue.push @board[v[0]][v[1]] unless @board[v[0]][v[1]].visited
-        queue.last.level = tmp.level + 1
+        unless @board[v[0]][v[1]].visited || queue.include?(@board[v[0]][v[1]])
+          queue.push @board[v[0]][v[1]]
+          queue.last.parent_move = tmp.position
+          queue.last.level = tmp.level + 1
+        end
       end
 
       queue.shift
@@ -65,8 +69,19 @@ class Board
     end
 
     if tmp.position == target
-      puts "We found it! and it's #{tmp.level} moves"
+      puts "Value found with #{tmp.level} moves! Here's your path:\n\n"
+      self.print_moves(source, target, tmp.level)
     end
+  end
+
+  def print_moves(source, current, counter)
+    if current == source
+      puts "Origin: #{current}"
+      return
+    end
+
+    print_moves(source, @board[current[0]][current[1]].parent_move, counter - 1)
+    puts "Move #{counter}: #{current}"
   end
 end
 
@@ -75,4 +90,4 @@ game = Board.new
 game.populate_board
 game.list_moves
 
-puts game.knights_moves([7, 0], [0, 7])
+game.knights_moves([7, 1], [7, 2])
